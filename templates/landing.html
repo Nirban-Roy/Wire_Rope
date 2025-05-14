@@ -524,6 +524,73 @@
         .overlay.show {
             display: block;
         }
+.rope-segments-container {
+    margin: 20px 0;
+    background: rgba(57, 62, 70, 0.3);
+    border-radius: 8px;
+    padding: 15px;
+}
+
+.segments-title {
+    color: var(--primary);
+    font-weight: 600;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.segments-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 5px;
+    margin-bottom: 15px;
+}
+
+.segment {
+    height: 30px;
+    background-color: rgba(57, 62, 70, 0.5);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--light);
+    font-size: 0.7rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.segment.normal {
+    background-color: var(--success);
+}
+
+.segment.warning {
+    background-color: var(--warning);
+    color: var(--dark);
+}
+
+.segment.danger {
+    background-color: var(--danger);
+}
+
+.segments-legend {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.8rem;
+}
+
+.legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    display: inline-block;
+}
 
         /* Responsive adjustments */
         @media (max-width: 1200px) {
@@ -688,45 +755,66 @@
 
         <div class="dashboard-grid">
             <div class="card rope-progress-card">
-                <div class="card-header">
-                    <h2 class="card-title">Wire Rope Inspection Progress</h2>
-                    <div class="card-actions">
-                        <button class="btn btn-secondary" id="reset-progress">
-                            <i class="fas fa-undo"></i> Reset
-                        </button>
-                        <button class="btn btn-info" id="progress-info-btn">
-                            <i class="fas fa-info-circle"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="rope-input-group">
-                    <label for="rope-length">Rope Length (meters):</label>
-                    <input type="number" id="rope-length" min="1" step="0.1" value="100">
-                    <button class="btn btn-primary" id="update-length">
-                        <i class="fas fa-save"></i> Save
-                    </button>
-                </div>
-                <div class="progress-container">
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="progress-fill"></div>
-                        <div class="progress-text" id="progress-text">0% Complete</div>
-                    </div>
-                </div>
-                <div class="rope-stats">
-                    <div class="stat-item">
-                        <div class="stat-value" id="inspected-length">0</div>
-                        <div class="stat-label">Meters Inspected</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value" id="anomaly-count">0</div>
-                        <div class="stat-label">Anomalies Detected</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value" id="remaining-length">0</div>
-                        <div class="stat-label">Meters Remaining</div>
-                    </div>
-                </div>
-            </div>
+    <div class="card-header">
+        <h2 class="card-title">Wire Rope Inspection Progress</h2>
+        <div class="card-actions">
+            <button class="btn btn-secondary" id="reset-progress">
+                <i class="fas fa-undo"></i> Reset
+            </button>
+            <button class="btn btn-info" id="progress-info-btn">
+                <i class="fas fa-info-circle"></i>
+            </button>
+        </div>
+    </div>
+    <div class="rope-input-group">
+        <label for="rope-length">Rope Length (meters):</label>
+        <input type="number" id="rope-length" min="1" step="0.1" value="100">
+        <button class="btn btn-primary" id="update-length">
+            <i class="fas fa-save"></i> Save
+        </button>
+    </div>
+    <div class="progress-container">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+            <div class="progress-text" id="progress-text">0% Complete</div>
+        </div>
+    </div>
+
+    <!-- New: Segmented Rope Visualization -->
+    <div class="rope-segments-container">
+        <div class="segments-title">Rope Segments Status</div>
+        <div class="segments-grid" id="segments-grid"></div>
+        <div class="segments-legend">
+            <div class="legend-item"><span class="legend-color" style="background-color: var(--success);"></span> Normal</div>
+            <div class="legend-item"><span class="legend-color" style="background-color: var(--warning);"></span> Minor Issues</div>
+            <div class="legend-item"><span class="legend-color" style="background-color: var(--danger);"></span> Critical Issues</div>
+        </div>
+    </div>
+
+    <div class="rope-stats">
+        <div class="stat-item">
+            <div class="stat-value" id="inspected-length">0</div>
+            <div class="stat-label">Meters Inspected</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" id="anomaly-count">0</div>
+            <div class="stat-label">Anomalies Detected</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" id="remaining-length">0</div>
+            <div class="stat-label">Meters Remaining</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" id="steps-count">0</div>
+            <div class="stat-label">Steps Count</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" id="distance-value">0</div>
+            <div class="stat-label">Distance (m)</div>
+        </div>
+    </div>
+</div>
+
 
             <div class="card">
                 <div class="card-header">
@@ -860,23 +948,32 @@
     </div>
 
     <div class="info-dialog" id="progress-info-dialog">
-        <button class="close-btn" id="close-progress-info"><i class="fas fa-times"></i></button>
-        <h3>Inspection Progress Tracking</h3>
-        <p>This section tracks the progress of the wire rope inspection in real-time.</p>
-        <p><strong>Key Metrics:</strong></p>
-        <ul>
-            <li><strong>Meters Inspected:</strong> Current length of rope that has been inspected</li>
-            <li><strong>Anomalies Detected:</strong> Count of potential defects found</li>
-            <li><strong>Meters Remaining:</strong> Length of rope left to inspect</li>
-        </ul>
-        <p><strong>Usage Instructions:</strong></p>
-        <ol>
-            <li>Enter the total length of the rope to inspect</li>
-            <li>Click "Save" to update the inspection parameters</li>
-            <li>Click "Reset" to restart the inspection progress</li>
-        </ol>
-        <p>Note: The progress is automatically saved in your browser's local storage.</p>
-    </div>
+    <button class="close-btn" id="close-progress-info"><i class="fas fa-times"></i></button>
+    <h3>Inspection Progress Tracking</h3>
+    <p>This section tracks the progress of the wire rope inspection in real-time.</p>
+    <p><strong>Key Metrics:</strong></p>
+    <ul>
+        <li><strong>Meters Inspected:</strong> Current length of rope that has been inspected</li>
+        <li><strong>Anomalies Detected:</strong> Count of potential defects found</li>
+        <li><strong>Meters Remaining:</strong> Length of rope left to inspect</li>
+        <li><strong>Steps Count:</strong> Number of steps taken during inspection</li>
+        <li><strong>Distance:</strong> Actual distance measured by the device</li>
+    </ul>
+    <p><strong>Rope Segments:</strong></p>
+    <p>The rope is divided into 10 equal segments for detailed monitoring:</p>
+    <ul>
+        <li><span style="color: var(--success)">Green:</span> Segment fully inspected with no issues</li>
+        <li><span style="color: var(--warning)">Yellow:</span> Segment partially inspected or with minor issues</li>
+        <li><span style="color: var(--danger)">Red:</span> Segment with critical issues detected</li>
+    </ul>
+    <p><strong>Usage Instructions:</strong></p>
+    <ol>
+        <li>Enter the total length of the rope to inspect</li>
+        <li>Click "Save" to update the inspection parameters</li>
+        <li>Click "Reset" to restart the inspection progress</li>
+    </ol>
+    <p>Note: The progress is automatically saved in your browser's local storage.</p>
+</div>
 
     <div class="info-dialog" id="imu-info-dialog">
         <button class="close-btn" id="close-imu-info"><i class="fas fa-times"></i></button>
@@ -915,6 +1012,36 @@ let sensorHistory = Array.from({ length: 8 }, () => []);
         let anomalyCount = 0;
         let anomalyThreshold = 3500; // Threshold for anomaly detection
         let gaugeCharts = {};
+
+function initRopeSegments() {
+    const segmentsGrid = document.getElementById('segments-grid');
+    segmentsGrid.innerHTML = '';
+    for (let i = 1; i <= 10; i++) {
+        const segment = document.createElement('div');
+        segment.className = 'segment';
+        segment.textContent = i;
+        segment.id = `segment-${i}`;
+        segmentsGrid.appendChild(segment);
+    }
+}
+
+function updateRopeSegments(inspectedLength, ropeLength) {
+    const segmentLength = ropeLength / 10;
+    for (let i = 1; i <= 10; i++) {
+        const segment = document.getElementById(`segment-${i}`);
+        const segmentStart = (i - 1) * segmentLength;
+        const segmentEnd = i * segmentLength;
+
+        if (inspectedLength >= segmentEnd) {
+            segment.className = 'segment normal';
+        } else if (inspectedLength > segmentStart) {
+            segment.className = 'segment warning';
+        } else {
+            segment.className = 'segment';
+        }
+    }
+}
+
         function fetchSensorData() {
     fetch('/api/sensor-data')
         .then(response => response.json())
@@ -954,11 +1081,20 @@ let sensorHistory = Array.from({ length: 8 }, () => []);
             document.getElementById('gyro-z').textContent = data.imu.gyroZ.toFixed(2);
 
             // Update distance
-            const distance = parseFloat(data.distance.value || 0);
+            const distance = parseFloat(data.distance || 0);
+document.getElementById('distance-value').textContent = distance.toFixed(2);
+updateRopeSegments(distance, ropeLength);
+
             if (!isNaN(distance)) {
-                currentDistance = distance;
-                updateRopeProgress();
-            }
+    currentDistance = distance;
+    updateRopeProgress();
+}
+
+const steps = parseInt(data.steps || 0);
+if (!isNaN(steps)) {
+    document.getElementById('steps-count').textContent = steps;
+}
+
 
             // Update anomaly count display
             document.getElementById('anomaly-count').textContent = anomalyCount;
@@ -974,6 +1110,7 @@ let sensorHistory = Array.from({ length: 8 }, () => []);
         document.addEventListener('DOMContentLoaded', function() {
             initGaugeCharts();
             initRopeProgress();
+	    initRopeSegments();
             setupEventListeners();
             setupInfoDialogs();
 setInterval(fetchSensorData, 2000);  // Fetch data every 2 seconds
