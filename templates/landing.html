@@ -1,0 +1,1485 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IEMA | Wire Rope Inspection System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/highcharts@10.3.3/highcharts.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highcharts@10.3.3/highcharts-more.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highcharts@10.3.3/modules/solid-gauge.js"></script>
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+<!-- Chart.js core + zoom plugin -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #00adb5;
+            --secondary: #393e46;
+            --dark: #222831;
+            --light: #eeeeee;
+            --warning: #fdcb6e;
+            --danger: #b83b5e;
+            --success: #00b894;
+            --info: #0984e3;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--dark);
+            color: var(--light);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            padding: 20px;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(238, 238, 238, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo img {
+            height: 50px;
+            width: auto;
+        }
+
+        .logo h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            background: linear-gradient(90deg, var(--primary), var(--light));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .status-bar {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+
+        .connection-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #ff4757;
+        }
+
+        .connection-dot.connected {
+            background-color: var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .last-update {
+            font-size: 0.8rem;
+            color: rgba(238, 238, 238, 0.7);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: rgba(31, 41, 55, 0.85);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary), var(--info));
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(238, 238, 238, 0.1);
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 15px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: var(--dark);
+        }
+
+        .btn-primary:hover {
+            background-color: #008c94;
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: var(--light);
+        }
+
+        .btn-secondary:hover {
+            background-color: #2d3238;
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: var(--light);
+        }
+
+        .btn-danger:hover {
+            background-color: #9a3153;
+        }
+
+        .btn-info {
+            background-color: transparent;
+            color: var(--primary);
+            padding: 5px;
+        }
+
+        .btn-info:hover {
+            color: var(--light);
+        }
+
+        /* Digital Twin Viewer */
+        #digital-twin {
+            height: 500px;
+            width: 100%;
+            background-color: rgba(238, 238, 238, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        model-viewer {
+            width: 100%;
+            height: 100%;
+            --progress-bar-color: var(--primary);
+        }
+
+        /* Sensor Gauges */
+        #sensor-gauges {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 20px;
+            padding: 10px;
+            height: 500px;
+        }
+
+        .gauge-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        .gauge {
+            width: 100%;
+            height: 100%;
+        }
+
+        .anomaly-gauge {
+            animation: pulse-danger 1s infinite;
+        }
+
+        @keyframes pulse-danger {
+            0% { box-shadow: 0 0 0 0 rgba(184, 59, 94, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(184, 59, 94, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(184, 59, 94, 0); }
+        }
+
+        /* Rope Progress Visualization */
+        .rope-progress-card {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .rope-input-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+
+        .rope-input-group label {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .rope-input-group input {
+            width: 100px;
+            padding: 8px 12px;
+            background: rgba(57, 62, 70, 0.5);
+            border: 1px solid rgba(238, 238, 238, 0.2);
+            border-radius: 5px;
+            color: var(--light);
+        }
+
+        .progress-container {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .progress-bar {
+            height: 30px;
+            background-color: rgba(57, 62, 70, 0.5);
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary), var(--info));
+            border-radius: 15px;
+            transition: width 0.5s ease;
+        }
+
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--light);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .rope-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: rgba(238, 238, 238, 0.7);
+        }
+
+        /* IMU Data Card */
+        #imu-data {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .imu-widget {
+            background-color: rgba(57, 62, 70, 0.5);
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.3s ease;
+        }
+
+        .imu-widget:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .imu-icon {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+
+        .imu-value-title {
+            font-size: 0.9rem;
+            color: rgba(238, 238, 238, 0.7);
+            margin-bottom: 5px;
+            text-align: center;
+        }
+
+        .imu-value-data {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--light);
+            text-align: center;
+        }
+
+        .imu-unit {
+            font-size: 0.8rem;
+            color: rgba(238, 238, 238, 0.6);
+            margin-top: 3px;
+        }
+
+        /* ML Analysis Section */
+        #ml-analysis {
+            margin-top: 30px;
+        }
+
+        .ml-progress-title {
+            font-size: 1rem;
+            color: var(--light);
+            margin-bottom: 10px;
+        }
+
+        /* Notification System */
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--secondary);
+            color: var(--light);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            border-left: 5px solid var(--success);
+        }
+
+        .notification.error {
+            border-left: 5px solid var(--danger);
+        }
+
+        .notification.warning {
+            border-left: 5px solid var(--warning);
+        }
+
+        .notification-icon {
+            font-size: 1.2rem;
+        }
+
+        .notification-close {
+            margin-left: auto;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s ease;
+        }
+
+        .notification-close:hover {
+            opacity: 1;
+        }
+
+        /* Info Dialog */
+        .info-dialog {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: var(--secondary);
+            color: var(--light);
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            width: 80%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            z-index: 2000;
+        }
+
+        .info-dialog.show {
+            display: block;
+        }
+
+        .info-dialog h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .info-dialog p {
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .info-dialog ul {
+            margin-bottom: 15px;
+            padding-left: 20px;
+        }
+
+        .info-dialog li {
+            margin-bottom: 8px;
+        }
+
+        .info-dialog .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: var(--light);
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+        }
+
+        .overlay.show {
+            display: block;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 1200px) {
+            #sensor-gauges {
+                grid-template-columns: repeat(2, 1fr);
+                grid-template-rows: repeat(4, 1fr);
+                height: 800px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .logo {
+                justify-content: center;
+            }
+            
+            .status-bar {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            #sensor-gauges {
+                grid-template-columns: 1fr;
+                grid-template-rows: repeat(8, 1fr);
+                height: 1200px;
+            }
+            
+            #imu-data {
+                grid-template-columns: 1fr;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .info-dialog {
+                width: 95%;
+                padding: 15px;
+            }
+}
+/* Chart Grid Container */
+/* === Sensor Signal Chart Grid (4x4) === */
+/* === Sensor Signal Chart Grid (4x4) === */
+.charts-grid-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    width: 100%;
+    min-height: 800px;
+    margin-top: 20px;
+}
+
+.chart-container {
+    background: rgba(31, 41, 55, 0.7);
+    border-radius: 8px;
+    padding: 10px;
+    position: relative;
+    height: 250px;
+    min-height: 200px;
+}
+
+.chart-title {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    color: var(--primary);
+    font-size: 0.8rem;
+    font-weight: 600;
+    z-index: 10;
+    background: rgba(31, 41, 55, 0.8);
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.chart-container canvas {
+    width: 100% !important;
+    height: calc(100% - 25px) !important;
+    display: block;
+}
+
+/* Responsive 2x8 */
+@media (max-width: 1200px) {
+    .charts-grid-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Responsive 1x16 */
+@media (max-width: 768px) {
+    .charts-grid-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <img src="/static/logo.png" alt="IEMA Research and Development Logo">
+                <h1>Wire Rope Inspection System</h1>
+            </div>
+            <div class="status-bar">
+                <div class="connection-status">
+                    <div class="connection-dot" id="connection-status"></div>
+                    <span id="connection-text">Connecting...</span>
+                </div>
+                <div class="last-update" id="last-update">Last update: Never</div>
+                <button class="btn btn-primary" id="download-report">
+                    <i class="fas fa-download"></i> Download Report
+                </button>
+            </div>
+        </header>
+
+        <div class="dashboard-grid">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Digital Twin Viewer</h2>
+                    <div class="card-actions">
+                        <button class="btn btn-info" id="model-info-btn">
+                            <i class="fas fa-info-circle"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="digital-twin">
+                    <model-viewer 
+                        src="/static/Wire%20Rope.glb" 
+                        alt="3D model of wire rope inspection device"
+                        camera-controls 
+                        auto-rotate 
+                        ar 
+                        shadow-intensity="1"
+                        exposure="0.8"
+                        environment-image="neutral">
+                        <button slot="ar-button" class="btn btn-primary" style="position: absolute; bottom: 16px; right: 16px;">
+                            <i class="fas fa-vr-cardboard"></i> View in AR
+                        </button>
+                    </model-viewer>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Hall-Effect Sensor Readings</h2>
+                    <div class="card-actions">
+                        <button class="btn btn-info" id="sensor-info-btn">
+                            <i class="fas fa-info-circle"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="sensor-gauges">
+                    <!-- 8 gauges will be inserted here by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="card rope-progress-card">
+                <div class="card-header">
+                    <h2 class="card-title">Wire Rope Inspection Progress</h2>
+                    <div class="card-actions">
+                        <button class="btn btn-secondary" id="reset-progress">
+                            <i class="fas fa-undo"></i> Reset
+                        </button>
+                        <button class="btn btn-info" id="progress-info-btn">
+                            <i class="fas fa-info-circle"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="rope-input-group">
+                    <label for="rope-length">Rope Length (meters):</label>
+                    <input type="number" id="rope-length" min="1" step="0.1" value="100">
+                    <button class="btn btn-primary" id="update-length">
+                        <i class="fas fa-save"></i> Save
+                    </button>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                        <div class="progress-text" id="progress-text">0% Complete</div>
+                    </div>
+                </div>
+                <div class="rope-stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="inspected-length">0</div>
+                        <div class="stat-label">Meters Inspected</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="anomaly-count">0</div>
+                        <div class="stat-label">Anomalies Detected</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="remaining-length">0</div>
+                        <div class="stat-label">Meters Remaining</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">IMU Sensor Data</h2>
+                    <div class="card-actions">
+                        <button class="btn btn-info" id="imu-info-btn">
+                            <i class="fas fa-info-circle"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="imu-data">
+                    <div class="imu-widget">
+                        <i class="fas fa-tachometer-alt imu-icon"></i>
+                        <div class="imu-value-title">Acceleration X</div>
+                        <div class="imu-value-data" id="accel-x">0.00</div>
+                        <div class="imu-unit">m/s²</div>
+                    </div>
+                    <div class="imu-widget">
+                        <i class="fas fa-tachometer-alt imu-icon"></i>
+                        <div class="imu-value-title">Acceleration Y</div>
+                        <div class="imu-value-data" id="accel-y">0.00</div>
+                        <div class="imu-unit">m/s²</div>
+                    </div>
+                    <div class="imu-widget">
+                        <i class="fas fa-tachometer-alt imu-icon"></i>
+                        <div class="imu-value-title">Acceleration Z</div>
+                        <div class="imu-value-data" id="accel-z">0.00</div>
+                        <div class="imu-unit">m/s²</div>
+                    </div>
+                    <div class="imu-widget">
+                        <i class="fas fa-sync-alt imu-icon"></i>
+                        <div class="imu-value-title">Gyroscope X</div>
+                        <div class="imu-value-data" id="gyro-x">0.00</div>
+                        <div class="imu-unit">rad/s</div>
+                    </div>
+                    <div class="imu-widget">
+                        <i class="fas fa-sync-alt imu-icon"></i>
+                        <div class="imu-value-title">Gyroscope Y</div>
+                        <div class="imu-value-data" id="gyro-y">0.00</div>
+                        <div class="imu-unit">rad/s</div>
+                    </div>
+                    <div class="imu-widget">
+                        <i class="fas fa-sync-alt imu-icon"></i>
+                        <div class="imu-value-title">Gyroscope Z</div>
+                        <div class="imu-value-data" id="gyro-z">0.00</div>
+                        <div class="imu-unit">rad/s</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+<div class="card" id="sensor-signal-charts">
+    <div class="card-header">
+        <h2 class="card-title">Sensor Signal Analysis</h2>
+        <div class="card-actions">
+            <button class="btn btn-info" id="sensor-analysis-info-btn">
+                <i class="fas fa-info-circle"></i>
+            </button>
+        </div>
+    </div>
+    <div class="charts-grid-container" id="chart-container">
+        <!-- Charts inserted here via JS -->
+    </div>
+</div>
+        <div class="card" id="ml-analysis">
+            <div class="card-header">
+                <h2 class="card-title">Machine Learning Analysis</h2>
+                <div class="card-actions">
+                    <span class="badge" style="background-color: var(--warning); color: var(--dark); padding: 5px 10px; border-radius: 20px; font-size: 0.8rem;">
+                        <i class="fas fa-flask"></i> Experimental
+                    </span>
+                </div>
+            </div>
+            <div class="progress-container">
+                <div class="ml-progress-title">Anomaly Detection Model Training</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 45%;"></div>
+                    <div class="progress-text">45% Complete</div>
+                </div>
+            </div>
+            <div style="margin-top: 20px; text-align: center; color: rgba(238, 238, 238, 0.7);">
+                <i class="fas fa-cog fa-spin" style="margin-right: 10px;"></i>
+                Machine learning features are currently in development and will be available soon.
+            </div>
+        </div>
+    </div>
+
+    <!-- Info Dialogs -->
+<div class="info-dialog" id="sensor-analysis-info-dialog">
+    <button class="close-btn" id="close-sensor-analysis-info"><i class="fas fa-times"></i></button>
+    <h3>Sensor Signal Analysis</h3>
+    <p>This section is reserved for signal analysis and future enhancements using FFT and AI-based pattern detection.</p>
+    <ul>
+        <li>Future versions may include live vibration patterns.</li>
+        <li>Currently, this section is under testing with dummy canvas.</li>
+        <li>No additional sensor control is needed right now.</li>
+    </ul>
+</div>
+
+    <div class="info-dialog" id="model-info-dialog">
+        <button class="close-btn" id="close-model-info"><i class="fas fa-times"></i></button>
+        <h3>3D Model Viewer</h3>
+        <p>This interactive 3D model shows the current state of the wire rope inspection device. You can rotate, zoom, and pan the model to inspect it from different angles.</p>
+        <p>Click the AR button to view the model in augmented reality on supported devices.</p>
+        <p><strong>Interaction Controls:</strong></p>
+        <ul>
+            <li><strong>Left-click + drag:</strong> Rotate the model</li>
+            <li><strong>Right-click + drag:</strong> Pan the model</li>
+            <li><strong>Scroll wheel:</strong> Zoom in/out</li>
+            <li><strong>Touch gestures:</strong> Supported on mobile devices</li>
+        </ul>
+    </div>
+
+    <div class="info-dialog" id="sensor-info-dialog">
+        <button class="close-btn" id="close-sensor-info"><i class="fas fa-times"></i></button>
+        <h3>Sensor Data Interpretation</h3>
+        <p>These gauges show real-time readings from the hall-effect sensors. The color zones indicate:</p>
+        <ul>
+            <li><span style="color: #00adb5">Blue (0-1250):</span> Normal operation</li>
+            <li><span style="color: #fdcb6e">Yellow (1250-2500):</span> Minor variations</li>
+            <li><span style="color: #f08a5d">Orange (2500-3750):</span> Significant variations</li>
+            <li><span style="color: #b83b5e">Red (3750-5000):</span> Potential anomalies</li>
+        </ul>
+        <p>Red flashing indicates detected anomalies that require attention.</p>
+        <p><strong>Technical Details:</strong></p>
+        <ul>
+            <li>Sensor sampling rate: 100Hz</li>
+            <li>Measurement range: 0-5000 Gauss</li>
+            <li>Resolution: 12-bit (0.122 mGauss/LSB)</li>
+            <li>Anomaly threshold: 3500 Gauss</li>
+        </ul>
+    </div>
+
+    <div class="info-dialog" id="progress-info-dialog">
+        <button class="close-btn" id="close-progress-info"><i class="fas fa-times"></i></button>
+        <h3>Inspection Progress Tracking</h3>
+        <p>This section tracks the progress of the wire rope inspection in real-time.</p>
+        <p><strong>Key Metrics:</strong></p>
+        <ul>
+            <li><strong>Meters Inspected:</strong> Current length of rope that has been inspected</li>
+            <li><strong>Anomalies Detected:</strong> Count of potential defects found</li>
+            <li><strong>Meters Remaining:</strong> Length of rope left to inspect</li>
+        </ul>
+        <p><strong>Usage Instructions:</strong></p>
+        <ol>
+            <li>Enter the total length of the rope to inspect</li>
+            <li>Click "Save" to update the inspection parameters</li>
+            <li>Click "Reset" to restart the inspection progress</li>
+        </ol>
+        <p>Note: The progress is automatically saved in your browser's local storage.</p>
+    </div>
+
+    <div class="info-dialog" id="imu-info-dialog">
+        <button class="close-btn" id="close-imu-info"><i class="fas fa-times"></i></button>
+        <h3>Inertial Measurement Unit</h3>
+        <p>This section displays real-time data from the device's inertial measurement unit (IMU):</p>
+        <ul>
+            <li><strong>Acceleration:</strong> Measured in m/s² along X, Y, and Z axes</li>
+            <li><strong>Gyroscope:</strong> Measured in rad/s showing rotation rates</li>
+        </ul>
+        <p>This data helps monitor the device's movement and orientation during inspection.</p>
+        <p><strong>Technical Specifications:</strong></p>
+        <ul>
+            <li>Accelerometer range: ±16g</li>
+            <li>Gyroscope range: ±2000dps</li>
+            <li>Sampling rate: 100Hz</li>
+            <li>Operating temperature: -40°C to +85°C</li>
+        </ul>
+    </div>
+
+    <div class="overlay" id="info-overlay"></div>
+
+    <div class="notification" id="notification">
+        <div class="notification-icon" id="notification-icon"></div>
+        <div class="notification-content" id="notification-content"></div>
+        <div class="notification-close" id="notification-close">
+            <i class="fas fa-times"></i>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+const sensorCharts = {};
+        let ropeLength = 100; // Default rope length in meters
+let sensorHistory = Array.from({ length: 8 }, () => []);
+        let currentDistance = 0;
+        let anomalyCount = 0;
+        let anomalyThreshold = 3500; // Threshold for anomaly detection
+        let gaugeCharts = {};
+        function fetchSensorData() {
+    fetch('/api/sensor-data')
+        .then(response => response.json())
+        .then(data => {
+            const timestamp = new Date().toLocaleTimeString();
+            document.getElementById('last-update').textContent = `Last update: ${timestamp}`;
+            document.getElementById('connection-status').classList.add('connected');
+    document.getElementById('connection-text').textContent = 'Connected';
+
+            // Update sensors
+            for (let i = 1; i <= 8; i++) {
+    const value = data.sensors[i].value || 0;
+    
+    if (gaugeCharts[i]) {
+        gaugeCharts[i].series[0].points[0].update(value);
+
+        if (value > anomalyThreshold) {
+            document.getElementById(`gauge-${i}`).classList.add('anomaly-gauge');
+            anomalyCount++;
+        } else {
+            document.getElementById(`gauge-${i}`).classList.remove('anomaly-gauge');
+        }
+    }
+
+    // Store last 100 readings for FFT and plotting
+    sensorHistory[i - 1].push(value);
+    if (sensorHistory[i - 1].length > 100) sensorHistory[i - 1].shift();
+}
+
+
+            // Update IMU
+            document.getElementById('accel-x').textContent = data.imu.accelX.toFixed(2);
+            document.getElementById('accel-y').textContent = data.imu.accelY.toFixed(2);
+            document.getElementById('accel-z').textContent = data.imu.accelZ.toFixed(2);
+            document.getElementById('gyro-x').textContent = data.imu.gyroX.toFixed(2);
+            document.getElementById('gyro-y').textContent = data.imu.gyroY.toFixed(2);
+            document.getElementById('gyro-z').textContent = data.imu.gyroZ.toFixed(2);
+
+            // Update distance
+            const distance = parseFloat(data.distance.value || 0);
+            if (!isNaN(distance)) {
+                currentDistance = distance;
+                updateRopeProgress();
+            }
+
+            // Update anomaly count display
+            document.getElementById('anomaly-count').textContent = anomalyCount;
+        })
+        .catch(error => {
+            console.error('Error fetching sensor data:', error);
+        });
+
+}
+
+
+        // Initialize the dashboard when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            initGaugeCharts();
+            initRopeProgress();
+            setupEventListeners();
+            setupInfoDialogs();
+setInterval(fetchSensorData, 2000);  // Fetch data every 2 seconds
+initializeCharts();
+setInterval(updateCharts, 1000); // Update every second
+
+        });
+
+        // Initialize Highcharts gauge charts for all 8 sensors
+        function initGaugeCharts() {
+            const palette = ['#00adb5', '#fdcb6e', '#f08a5d', '#b83b5e'];
+            const gaugeContainer = document.getElementById('sensor-gauges');
+            
+            // Create gauge containers for all 8 sensors
+            for (let i = 1; i <= 8; i++) {
+                const gaugeDiv = document.createElement('div');
+                gaugeDiv.className = 'gauge-container';
+                gaugeDiv.innerHTML = `<div id="gauge-${i}" class="gauge"></div>`;
+                gaugeContainer.appendChild(gaugeDiv);
+            }
+            
+            // Initialize all 8 gauges
+            for (let i = 1; i <= 8; i++) {
+                gaugeCharts[i] = Highcharts.chart(`gauge-${i}`, {
+                    chart: {
+                        type: 'gauge',
+                        backgroundColor: 'transparent',
+                        spacing: [10, 0, 0, 0],
+                        marginTop: 50,
+                        marginBottom: 50
+                    },
+                    credits: { enabled: false },
+                    title: {
+                        text: `Sensor ${i}`,
+                        style: { 
+                            color: '#e5e7eb', 
+                            fontSize: '1.1rem',
+                            fontWeight: 'bold'
+                        }
+                    },
+                    pane: {
+                        startAngle: -120,
+                        endAngle: 120,
+                        background: [
+                            {
+                                outerRadius: '90%',
+                                innerRadius: '75%',
+                                backgroundColor: 'rgba(31,41,55,0.85)',
+                                borderWidth: 0
+                            },
+                            {
+                                outerRadius: '75%',
+                                innerRadius: '0%',
+                                backgroundColor: '#1e2733',
+                                borderWidth: 0
+                            }
+                        ]
+                    },
+                    yAxis: {
+                        min: 0,
+                        max: 5000,
+                        lineWidth: 0,
+                        tickPositions: [],
+                        labels: { enabled: false },
+                        minorTickLength: 0,
+                        plotBands: palette.map((color, idx) => ({
+                            from: idx * 1250,
+                            to: (idx + 1) * 1250,
+                            color,
+                            innerRadius: '75%',
+                            outerRadius: '90%'
+                        }))
+                    },
+                    series: [{
+                        data: [0],
+                        dial: {
+                            radius: '85%',
+                            backgroundColor: '#ffffff',
+                            baseWidth: 6,
+                            baseLength: '20%',
+                            rearLength: '0%'
+                        },
+                        pivot: {
+                            backgroundColor: '#ffffff',
+                            radius: 6
+                        },
+                        dataLabels: {
+                            enabled: true,
+                            borderWidth: 1,
+                            borderColor: '#ffffff',
+                            borderRadius: 2,
+                            backgroundColor: 'rgba(31,41,55,0.9)',
+                            padding: 2,
+                            y: 10,
+                            style: {
+                                color: '#ffffff',
+                                fontSize: '0.75rem',
+                                fontWeight: 'bold',
+                                textOutline: '0px'
+                            },
+                            format: '{y:.0f}'
+                        }
+                    }]
+                });
+            }
+        }
+
+        // Initialize rope progress visualization
+        function initRopeProgress() {
+            // Load saved values from localStorage
+            const savedLength = localStorage.getItem('ropeLength');
+            const savedDistance = localStorage.getItem('currentDistance');
+            const savedAnomalies = localStorage.getItem('anomalyCount');
+            
+            if (savedLength) {
+                ropeLength = parseFloat(savedLength);
+                document.getElementById('rope-length').value = ropeLength;
+            }
+            
+            if (savedDistance) {
+                currentDistance = parseFloat(savedDistance);
+            }
+            
+            if (savedAnomalies) {
+                anomalyCount = parseInt(savedAnomalies);
+                document.getElementById('anomaly-count').textContent = anomalyCount;
+            }
+            
+            updateRopeProgress();
+        }
+
+        // Update rope progress visualization
+        function updateRopeProgress() {
+            const progressFill = document.getElementById('progress-fill');
+            const progressText = document.getElementById('progress-text');
+            const inspectedLength = document.getElementById('inspected-length');
+            const remainingLength = document.getElementById('remaining-length');
+            
+            // Calculate percentage
+            const percentage = Math.min(100, (currentDistance / ropeLength) * 100);
+            
+            // Update progress bar
+            progressFill.style.width = `${percentage}%`;
+            progressText.textContent = `${percentage.toFixed(1)}% Complete`;
+            
+            // Update stats
+            inspectedLength.textContent = currentDistance.toFixed(1);
+            remainingLength.textContent = Math.max(0, (ropeLength - currentDistance)).toFixed(1);
+            
+            // Change color if anomalies detected
+            if (anomalyCount > 0) {
+                progressFill.style.background = 'linear-gradient(90deg, var(--danger), var(--warning))';
+            } else {
+                progressFill.style.background = 'linear-gradient(90deg, var(--primary), var(--info))';
+            }
+            
+            // Save to localStorage
+            localStorage.setItem('ropeLength', ropeLength);
+            localStorage.setItem('currentDistance', currentDistance);
+            localStorage.setItem('anomalyCount', anomalyCount);
+        }
+
+        
+        
+        function resetGauges() {
+            for (let i = 1; i <= 8; i++) {
+                if (gaugeCharts[i]) {
+                    gaugeCharts[i].series[0].points[0].update(0);
+                    document.getElementById(`gauge-${i}`).classList.remove('anomaly-gauge');
+                }
+            }
+        }
+
+                // Setup event listeners
+        function setupEventListeners() {
+            // Update rope length button
+            document.getElementById('update-length').addEventListener('click', function() {
+                const newLength = parseFloat(document.getElementById('rope-length').value);
+                if (newLength && newLength > 0) {
+                    ropeLength = newLength;
+                    currentDistance = 0;
+                    anomalyCount = 0;
+                    document.getElementById('anomaly-count').textContent = '0';
+                    updateRopeProgress();
+                    showNotification('Rope length updated successfully', 'success');
+                } else {
+                    showNotification('Please enter a valid rope length', 'error');
+                }
+            });
+            
+            // Reset progress button
+            document.getElementById('reset-progress').addEventListener('click', function() {
+                currentDistance = 0;
+                anomalyCount = 0;
+                document.getElementById('anomaly-count').textContent = '0';
+                updateRopeProgress();
+                showNotification('Inspection progress reset', 'info');
+            });
+            
+            // Download report button
+            document.getElementById('download-report').addEventListener('click', function() {
+                downloadReport();
+            });
+            
+            // Notification close button
+            document.getElementById('notification-close').addEventListener('click', function() {
+                hideNotification();
+            });
+        }
+
+        // Setup info dialogs
+        function setupInfoDialogs() {
+            // Model info dialog
+            document.getElementById('model-info-btn').addEventListener('click', function(e) {
+                e.stopPropagation();
+                document.getElementById('model-info-dialog').classList.add('show');
+                document.getElementById('info-overlay').classList.add('show');
+            });
+            
+            document.getElementById('close-model-info').addEventListener('click', function() {
+                document.getElementById('model-info-dialog').classList.remove('show');
+                document.getElementById('info-overlay').classList.remove('show');
+            });
+            // Sensor Analysis info dialog
+document.getElementById('sensor-analysis-info-btn').addEventListener('click', function(e) {
+    e.stopPropagation();
+    document.getElementById('sensor-analysis-info-dialog').classList.add('show');
+    document.getElementById('info-overlay').classList.add('show');
+});
+
+document.getElementById('close-sensor-analysis-info').addEventListener('click', function() {
+    document.getElementById('sensor-analysis-info-dialog').classList.remove('show');
+    document.getElementById('info-overlay').classList.remove('show');
+});
+
+            // Sensor info dialog
+            document.getElementById('sensor-info-btn').addEventListener('click', function(e) {
+                e.stopPropagation();
+                document.getElementById('sensor-info-dialog').classList.add('show');
+                document.getElementById('info-overlay').classList.add('show');
+            });
+            
+            document.getElementById('close-sensor-info').addEventListener('click', function() {
+                document.getElementById('sensor-info-dialog').classList.remove('show');
+                document.getElementById('info-overlay').classList.remove('show');
+            });
+            
+            // Progress info dialog
+            document.getElementById('progress-info-btn').addEventListener('click', function(e) {
+                e.stopPropagation();
+                document.getElementById('progress-info-dialog').classList.add('show');
+                document.getElementById('info-overlay').classList.add('show');
+            });
+            
+            document.getElementById('close-progress-info').addEventListener('click', function() {
+                document.getElementById('progress-info-dialog').classList.remove('show');
+                document.getElementById('info-overlay').classList.remove('show');
+            });
+            
+            // IMU info dialog
+            document.getElementById('imu-info-btn').addEventListener('click', function(e) {
+                e.stopPropagation();
+                document.getElementById('imu-info-dialog').classList.add('show');
+                document.getElementById('info-overlay').classList.add('show');
+            });
+            
+            document.getElementById('close-imu-info').addEventListener('click', function() {
+                document.getElementById('imu-info-dialog').classList.remove('show');
+                document.getElementById('info-overlay').classList.remove('show');
+            });
+            
+            // Close dialogs when clicking on overlay
+            document.getElementById('info-overlay').addEventListener('click', function() {
+                document.querySelectorAll('.info-dialog').forEach(dialog => {
+                    dialog.classList.remove('show');
+                });
+                this.classList.remove('show');
+            });
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            const icon = document.getElementById('notification-icon');
+            const content = document.getElementById('notification-content');
+            
+            // Set notification content and style
+            content.textContent = message;
+            notification.className = `notification ${type}`;
+            
+            // Set icon based on type
+            switch (type) {
+                case 'success':
+                    icon.className = 'notification-icon fas fa-check-circle';
+                    break;
+                case 'error':
+                    icon.className = 'notification-icon fas fa-exclamation-circle';
+                    break;
+                case 'warning':
+                    icon.className = 'notification-icon fas fa-exclamation-triangle';
+                    break;
+                default:
+                    icon.className = 'notification-icon fas fa-info-circle';
+            }
+            
+            // Show notification
+            notification.classList.add('show');
+            
+            // Auto-hide after 5 seconds
+            setTimeout(hideNotification, 5000);
+        }
+
+        function hideNotification() {
+            document.getElementById('notification').classList.remove('show');
+        }
+
+        // Download report - calls backend API
+        function downloadReport() {
+            showNotification('Generating inspection report...', 'info');
+            
+            // Prepare the data to send to the backend
+            const reportData = {
+                ropeLength: ropeLength,
+                inspectedLength: currentDistance,
+                anomalyCount: anomalyCount,
+                timestamp: new Date().toISOString(),
+                sensorData: {}
+            };
+            
+            // Add sensor data if available
+            for (let i = 1; i <= 8; i++) {
+                if (gaugeCharts[i]) {
+                    reportData.sensorData[`sensor${i}`] = gaugeCharts[i].series[0].points[0].y;
+                }
+            }
+            
+            // Call the backend API
+            fetch('/api/download-report', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(reportData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to generate report');
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `wire_rope_report_${new Date().toISOString().slice(0, 10)}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                showNotification('Report downloaded successfully', 'success');
+            })
+            .catch(error => {
+                console.error('Error downloading report:', error);
+                showNotification('Failed to download report: ' + error.message, 'error');
+            });
+        }
+function initializeCharts() {
+    const chartContainer = document.getElementById('chart-container');
+    chartContainer.innerHTML = '';
+
+    // First 8: Time-domain charts
+    for (let i = 1; i <= 8; i++) {
+        const chartDiv = document.createElement('div');
+        chartDiv.className = 'chart-container';
+        chartDiv.innerHTML = `
+            <div class="chart-title">Sensor ${i} - Time</div>
+            <canvas id="time-chart-${i}"></canvas>
+        `;
+        chartContainer.appendChild(chartDiv);
+        sensorCharts[`time-${i}`] = createTimeChart(`time-chart-${i}`);
+    }
+
+    // Next 8: Frequency-domain charts
+    for (let i = 1; i <= 8; i++) {
+        const chartDiv = document.createElement('div');
+        chartDiv.className = 'chart-container';
+        chartDiv.innerHTML = `
+            <div class="chart-title">Sensor ${i} - FFT</div>
+            <canvas id="freq-chart-${i}"></canvas>
+        `;
+        chartContainer.appendChild(chartDiv);
+        sensorCharts[`freq-${i}`] = createFreqChart(`freq-chart-${i}`);
+    }
+}
+function createTimeChart(canvasId) {
+    const ctx = document.getElementById(canvasId).getContext('2d');
+    return new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: Array(50).fill(''),
+            datasets: [{
+                data: Array(50).fill(0),
+                borderColor: 'rgba(0,173,181,0.9)',
+                backgroundColor: 'rgba(0,173,181,0.1)',
+                borderWidth: 2,
+                pointRadius: 0,
+                fill: true,
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 0 },
+            plugins: {
+                legend: { display: false },
+                zoom: {
+                    zoom: {
+                        wheel: { enabled: true },
+                        pinch: { enabled: true },
+                        mode: 'xy'
+                    },
+                    pan: {
+                        enabled: true,
+                        mode: 'xy'
+                    }
+                }
+            },
+            scales: {
+                x: { display: false, grid: { color: 'rgba(238,238,238,0.1)' } },
+                y: {
+                    min: 0, max: 5000,
+                    grid: { color: 'rgba(238,238,238,0.1)' },
+                    ticks: { color: 'rgba(238,238,238,0.7)' }
+                }
+            },
+            interaction: { intersect: false, mode: 'index' }
+        }
+    });
+}
+
+function createFreqChart(canvasId) {
+    const ctx = document.getElementById(canvasId).getContext('2d');
+    return new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: Array(16).fill(''),
+            datasets: [{
+                data: Array(16).fill(0),
+                backgroundColor: 'rgba(0,173,181,0.7)',
+                borderColor: 'rgba(0,173,181,0.9)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 0 },
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                x: { display: false, grid: { color: 'rgba(238,238,238,0.1)' } },
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(238,238,238,0.1)' },
+                    ticks: { color: 'rgba(238,238,238,0.7)' }
+                }
+            }
+        }
+    });
+}
+
+function updateCharts() {
+    for (let i = 1; i <= 8; i++) {
+        const data = sensorHistory[i - 1] || [];
+        const timeChart = sensorCharts[`time-${i}`];
+        const freqChart = sensorCharts[`freq-${i}`];
+
+        if (timeChart) {
+            timeChart.data.datasets[0].data = data.slice(-50);
+            timeChart.update('none');
+        }
+
+        if (freqChart) {
+            freqChart.data.datasets[0].data = computeFFT(data.slice(-64));
+            freqChart.update('none');
+        }
+    }
+}
+
+function computeFFT(data) {
+    if (data.length < 2) return Array(16).fill(0);
+    const fftApprox = [];
+    const chunkSize = Math.floor(data.length / 16);
+    for (let i = 0; i < 16; i++) {
+        const start = i * chunkSize;
+        const chunk = data.slice(start, start + chunkSize);
+        let sum = 0;
+        for (let j = 1; j < chunk.length; j++) {
+            sum += Math.abs(chunk[j] - chunk[j - 1]);
+        }
+        fftApprox.push(sum / (chunk.length - 1 || 1));
+    }
+    return fftApprox;
+}
+
+    </script>
+</body>
+</html>
