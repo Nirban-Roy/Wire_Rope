@@ -709,6 +709,9 @@
                 <button class="btn btn-primary" id="download-report">
                     <i class="fas fa-download"></i> Download Report
                 </button>
+<button class="btn btn-secondary" id="reset-report">
+  <i class="fas fa-redo"></i> Reset Report
+</button>
             </div>
         </header>
 
@@ -1223,23 +1226,12 @@ setInterval(updateCharts, 1000); // Update every second
         function initRopeProgress() {
             // Load saved values from localStorage
             const savedLength = localStorage.getItem('ropeLength');
-            const savedDistance = localStorage.getItem('currentDistance');
-            const savedAnomalies = localStorage.getItem('anomalyCount');
-            
             if (savedLength) {
                 ropeLength = parseFloat(savedLength);
                 document.getElementById('rope-length').value = ropeLength;
             }
             
-            if (savedDistance) {
-                currentDistance = parseFloat(savedDistance);
-            }
-            
-            if (savedAnomalies) {
-                anomalyCount = parseInt(savedAnomalies);
-                document.getElementById('anomaly-count').textContent = anomalyCount;
-            }
-            
+                        
             updateRopeProgress();
         }
 
@@ -1270,8 +1262,6 @@ setInterval(updateCharts, 1000); // Update every second
             
             // Save to localStorage
             localStorage.setItem('ropeLength', ropeLength);
-            localStorage.setItem('currentDistance', currentDistance);
-            localStorage.setItem('anomalyCount', anomalyCount);
         }
 
         
@@ -1315,7 +1305,19 @@ setInterval(updateCharts, 1000); // Update every second
             document.getElementById('download-report').addEventListener('click', function() {
                 downloadReport();
             });
-            
+            document.getElementById('reset-report').addEventListener('click', function() {
+      fetch('/api/reset-report', { method: 'POST' })
+        .then(res => {
+          if (!res.ok) throw new Error('Reset failed');
+          return res.json();
+        })
+        .then(json => {
+          showNotification('Report log reset successfully', 'success');
+        })
+        .catch(err => {
+          showNotification('Failed to reset report: ' + err.message, 'error');
+        });
+    });
             // Notification close button
             document.getElementById('notification-close').addEventListener('click', function() {
                 hideNotification();
