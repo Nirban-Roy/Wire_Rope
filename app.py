@@ -66,6 +66,7 @@ def on_connect(client, userdata, flags, rc):
     for i in range(1, 10):
         client.subscribe(f"wire_rope_00{i}")
     client.subscribe("steps")
+    client.subscribe("distance")
 
 def on_message(client, userdata, msg):
     topic, payload = msg.topic, msg.payload.decode('utf-8')
@@ -192,6 +193,35 @@ def download_report():
         download_name=name,
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
+
+@app.route('/api/reset-report', methods=['POST'])
+def reset_report():
+    """
+    Clears all logged rows except the header so
+    that a new inspection log starts fresh,
+    resets sensor_data, and reconnects MQTT.
+    """
+    with data_lock:
+        # 1) Clear out the log
+        global log_rows
+        log_rows = [HEADERS.copy()]
+        # 2) Zero out live sensor_data
+        sensor_data['distance'] = 0.0
+        sensor_data['steps']   = 0
+        for i in sensor_data['sensors']:
+            sensor_data['sensors'][i] = 0.0
+        for axis in sensor_data['imu']:
+            sensor_data['imu'][axis] = 0.0
+
+    # 3) Force MQTT reconnect so logging truly restarts
+    try:
+        mqtt_client.reconnect()
+    except Exception:
+        mqtt_client.disconnect()
+        mqtt_client.connect(MQTT_BROKER, MQTT_PORT, keepalive=60)
+        mqtt_client.loop_start()
+
+    return jsonify({"status": "Report log reset"}), 200
 
 @app.route('/static/<path:filename>')
 def serve_static(filename):
