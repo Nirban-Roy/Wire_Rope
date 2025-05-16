@@ -30,10 +30,12 @@ data_lock = Lock()
 # Holds the latest incoming values
 sensor_data = {
     'sensors': {i: 0.0 for i in range(1, 9)},
-    'imu':    {'accelX':0.0, 'accelY':0.0, 'accelZ':0.0,
-               'gyroX':0.0,  'gyroY':0.0,  'gyroZ':0.0},
-    'steps': 0
+    'imu': {'accelX': 0.0, 'accelY': 0.0, 'accelZ': 0.0,
+            'gyroX': 0.0, 'gyroY': 0.0, 'gyroZ': 0.0},
+    'steps': 0,
+    'distance': 0.0  # ✅ added distance key
 }
+
 
 # This will hold our full report: first row = header, then one snapshot per second
 log_rows = []
@@ -45,6 +47,7 @@ HEADERS = [
     'Inspected Length (m)',
     'Anomaly Count',
     'Steps Count',
+    'Distance (m)',
 ] + [f"Sensor {i} (Gauss)" for i in range(1, 9)] + [
     'Accel X (m/s²)',
     'Accel Y (m/s²)',
@@ -79,6 +82,8 @@ def on_message(client, userdata, msg):
                         sensor_data['imu'][f"gyro{axis}"]  = imu.get(f"gyro{axis}",  0.0)
             elif topic == "steps":
                 sensor_data['steps'] = int(payload)
+            elif topic == "distance":
+                sensor_data['distance'] = float(payload)
         except Exception as e:
             print("Error processing MQTT message:", e)
 
