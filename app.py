@@ -107,12 +107,30 @@ def on_message(client, userdata, msg):
 
 def on_connect(client, userdata, flags, rc):
     print(f"✅ Connected to MQTT broker, rc={rc}")
+
 mqtt_client = mqtt.Client()
+
 mqtt_client.username_pw_set(MQTT_USER, MQTT_PASSWORD)
+
 mqtt_client.on_connect = on_connect
 mqtt_client.on_message = on_message
-mqtt_client.connect(MQTT_BROKER, MQTT_PORT, keepalive=60)
+
+# Configure automatic reconnection
+mqtt_client.reconnect_delay_set(min_delay=1, max_delay=60)
+
+# Connect asynchronously so broker timeout cannot
+# prevent Flask/Gunicorn from starting
+mqtt_client.connect_async(
+    MQTT_BROKER,
+    MQTT_PORT,
+    keepalive=60
+)
+
+# Start MQTT network processing in the background
 mqtt_client.loop_start()
+
+print("MQTT client initialized. Waiting for broker connection...")
+
 
 # --- BACKGROUND LOGGER ----------------------------------------------------
 
